@@ -17,6 +17,8 @@ import { TextSight } from "textsight";
 console.log((await new TextSight().detect("Some text")).verdict);
 ```
 
+Guides: [AI detection in Python](https://textsight.github.io/textsight-sdk/python-ai-detection.html) · [AI detector API for Node.js](https://textsight.github.io/textsight-sdk/nodejs-ai-detector-api.html) · [GPTZero API alternative](https://textsight.github.io/textsight-sdk/gptzero-api-alternative.html)
+
 Get an API key at [app.textsight.ai/signup](https://app.textsight.ai/signup). Full API reference: [textsight.ai/api-docs.html](https://www.textsight.ai/api-docs.html).
 
 Looking for a free AI detector without code? Use [TextSight in the browser](https://www.textsight.ai/), an alternative to GPTZero, ZeroGPT, Originality.ai, Undetectable.ai and QuillBot.

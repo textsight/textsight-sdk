@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://textsight.github.io/textsight-sdk/sitemap.xml

@@ -1,0 +1,41 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Detector API for Node.js and TypeScript (TextSight)</title><meta name="description" content="Use the TextSight AI detector API from Node.js or TypeScript: npm install textsight, detect ChatGPT-written text, get sentence scores and humanize AI content."><link rel="canonical" href="https://textsight.github.io/textsight-sdk/nodejs-ai-detector-api.html">
+<meta property="og:title" content="AI Detector API for Node.js and TypeScript (TextSight)"><meta property="og:description" content="Use the TextSight AI detector API from Node.js or TypeScript: npm install textsight, detect ChatGPT-written text, get sentence scores and humanize AI content."><meta property="og:type" content="website"><meta property="og:url" content="https://textsight.github.io/textsight-sdk/nodejs-ai-detector-api.html">
+<link rel="stylesheet" href="style.css"><script type="application/ld+json">[{"@context": "https://schema.org", "@type": "SoftwareSourceCode", "name": "TextSight SDK", "description": "Python and JavaScript client for the TextSight AI detector and AI humanizer API", "codeRepository": "https://github.com/textsight/textsight-sdk", "programmingLanguage": ["Python", "JavaScript", "TypeScript"], "license": "https://opensource.org/licenses/MIT", "author": {"@type": "Organization", "name": "TextSight", "url": "https://www.textsight.ai/", "sameAs": ["https://github.com/textsight", "https://pypi.org/project/textsight/", "https://sourceforge.net/projects/textsight-sdk/", "https://x.com/TextsightAI"]}}, {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Is there an AI detector API for JavaScript?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Install textsight from npm and call new TextSight().detect(text) to get a verdict, a 0-100 humanization score and per-sentence labels."}}, {"@type": "Question", "name": "Can I call the TextSight API from the browser?", "acceptedAnswer": {"@type": "Answer", "text": "You should not, because it would expose your API key. Call it from your server or a serverless function and pass the result to the browser."}}, {"@type": "Question", "name": "Does the npm package support TypeScript?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Type definitions for every request option and response field are included."}}]}]</script></head><body><header><a class="brand" href="./">TextSight SDK</a><nav><a href="python-ai-detection.html">Python</a><a href="nodejs-ai-detector-api.html">Node.js</a><a href="gptzero-api-alternative.html">GPTZero API alternative</a><a href="https://github.com/textsight/textsight-sdk">GitHub</a></nav></header><main><h1>AI detector API for Node.js and TypeScript</h1>
+<p class="lead">Add AI-content detection to a web app, CMS, LMS or chat bot with the free <code>textsight</code> npm package. It wraps the <a href="https://www.textsight.ai/api-docs.html">TextSight API</a>, ships TypeScript types and has no dependencies.</p>
+<h2>Install</h2>
+<pre><code>npm install textsight</code></pre>
+<p>Requires Node.js 18 or newer (it uses the built-in <code>fetch</code>).</p>
+<h2>Detect AI text</h2>
+<pre><code>import { TextSight } from "textsight";
+
+const ts = new TextSight({ apiKey: process.env.TEXTSIGHT_API_KEY });
+const r = await ts.detect(text);
+
+console.log(r.verdict, r.humanization_score);
+const flagged = r.sentences.filter((s) =&gt; s.label === "ai");</code></pre>
+<h2>Example: an Express endpoint</h2>
+<pre><code>import express from "express";
+import { TextSight, TextSightError } from "textsight";
+
+const app = express();
+const ts = new TextSight();            // reads TEXTSIGHT_API_KEY
+app.use(express.json());
+
+app.post("/check", async (req, res) =&gt; {
+  try {
+    const r = await ts.detect(req.body.text);
+    res.json({ verdict: r.verdict, score: r.humanization_score });
+  } catch (e) {
+    if (e instanceof TextSightError) return res.status(e.status || 502).json({ error: e.message });
+    throw e;
+  }
+});
+app.listen(3000);</code></pre>
+<p>Keep the API key on the server. Never ship it in browser JavaScript.</p>
+<h2>Humanize AI writing</h2>
+<pre><code>const out = await ts.rewrite(text, { tone: "blog", strength: 3, preserve: ["ACME Inc."] });
+console.log(out.rewritten);</code></pre>
+<h2>Errors and retries</h2>
+<p>Failed calls throw <code>TextSightError</code> with <code>status</code>, <code>code</code> and <code>message</code>. Rate limits (429) and brief outages (503) are retried twice with backoff before the error is thrown. Timeouts default to 60 seconds and can be changed with the <code>timeout</code> option.</p>
+<p>No-code option: TextSight also connects through <a href="https://www.textsight.ai/zapier/">Zapier</a>.</p><h2>FAQ</h2><h3>Is there an AI detector API for JavaScript?</h3><p>Yes. Install textsight from npm and call new TextSight().detect(text) to get a verdict, a 0-100 humanization score and per-sentence labels.</p><h3>Can I call the TextSight API from the browser?</h3><p>You should not, because it would expose your API key. Call it from your server or a serverless function and pass the result to the browser.</p><h3>Does the npm package support TypeScript?</h3><p>Yes. Type definitions for every request option and response field are included.</p></main><footer>TextSight SDK is MIT licensed and maintained by <a href="https://www.textsight.ai/">TextSight</a>, the AI detector and AI humanizer. Code on <a href="https://github.com/textsight/textsight-sdk">GitHub</a> · <a href="https://pypi.org/project/textsight/">PyPI</a> · <a href="https://www.textsight.ai/api-docs.html">API reference</a> · <a href="https://www.textsight.ai/pricing.html">Pricing</a></footer></body></html>

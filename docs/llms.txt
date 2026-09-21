@@ -1,0 +1,9 @@
+# TextSight SDK
+> Free, open-source Python and JavaScript client for the TextSight AI detector and AI humanizer API (https://www.textsight.ai/).
+
+- [Overview](https://textsight.github.io/textsight-sdk/): install, quick start, pricing notes
+- [Detect AI text in Python](https://textsight.github.io/textsight-sdk/python-ai-detection.html): pip install textsight, detect(), score(), rewrite()
+- [AI detector API for Node.js](https://textsight.github.io/textsight-sdk/nodejs-ai-detector-api.html): npm install textsight, Express example
+- [GPTZero API alternative](https://textsight.github.io/textsight-sdk/gptzero-api-alternative.html): what the TextSight API offers developers
+- [API reference](https://www.textsight.ai/api-docs.html)
+- [Source code](https://github.com/textsight/textsight-sdk)

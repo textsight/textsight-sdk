@@ -1,0 +1,43 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>How to Detect AI-Generated Text in Python (TextSight API)</title><meta name="description" content="Step-by-step guide to detecting AI-generated text in Python with the free TextSight SDK: install, detect ChatGPT text, get sentence scores and humanize AI writing."><link rel="canonical" href="https://textsight.github.io/textsight-sdk/python-ai-detection.html">
+<meta property="og:title" content="How to Detect AI-Generated Text in Python (TextSight API)"><meta property="og:description" content="Step-by-step guide to detecting AI-generated text in Python with the free TextSight SDK: install, detect ChatGPT text, get sentence scores and humanize AI writing."><meta property="og:type" content="website"><meta property="og:url" content="https://textsight.github.io/textsight-sdk/python-ai-detection.html">
+<link rel="stylesheet" href="style.css"><script type="application/ld+json">[{"@context": "https://schema.org", "@type": "SoftwareSourceCode", "name": "TextSight SDK", "description": "Python and JavaScript client for the TextSight AI detector and AI humanizer API", "codeRepository": "https://github.com/textsight/textsight-sdk", "programmingLanguage": ["Python", "JavaScript", "TypeScript"], "license": "https://opensource.org/licenses/MIT", "author": {"@type": "Organization", "name": "TextSight", "url": "https://www.textsight.ai/", "sameAs": ["https://github.com/textsight", "https://pypi.org/project/textsight/", "https://sourceforge.net/projects/textsight-sdk/", "https://x.com/TextsightAI"]}}, {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "How do I detect AI-generated text in Python?", "acceptedAnswer": {"@type": "Answer", "text": "Install the textsight package with pip install textsight, set your TEXTSIGHT_API_KEY, then call TextSight().detect(text). It returns a verdict, a 0-100 humanization score and per-sentence scores."}}, {"@type": "Question", "name": "Can Python detect ChatGPT text offline?", "acceptedAnswer": {"@type": "Answer", "text": "Not reliably. Accurate detection needs a trained model, so the textsight package sends text to the TextSight API and returns the result."}}, {"@type": "Question", "name": "Is there a free AI detection API for Python?", "acceptedAnswer": {"@type": "Answer", "text": "The textsight library is free and open source. The API itself needs a TextSight plan with API access; for occasional checks the browser detector at textsight.ai is free."}}]}]</script></head><body><header><a class="brand" href="./">TextSight SDK</a><nav><a href="python-ai-detection.html">Python</a><a href="nodejs-ai-detector-api.html">Node.js</a><a href="gptzero-api-alternative.html">GPTZero API alternative</a><a href="https://github.com/textsight/textsight-sdk">GitHub</a></nav></header><main><h1>How to detect AI-generated text in Python</h1>
+<p class="lead">This guide shows how to check text for ChatGPT, Claude or Gemini writing from a Python script, using the free <code>textsight</code> package and the <a href="https://www.textsight.ai/ai-content-detector/">TextSight AI content detector</a>.</p>
+<h2>1. Install the package</h2>
+<pre><code>pip install textsight</code></pre>
+<p>It has no dependencies and works on Python 3.8 and newer.</p>
+<h2>2. Add your API key</h2>
+<pre><code># macOS / Linux
+export TEXTSIGHT_API_KEY=sk_live_...
+# Windows
+set TEXTSIGHT_API_KEY=sk_live_...</code></pre>
+<p>Get a key at <a href="https://app.textsight.ai/signup">app.textsight.ai/signup</a>. Keep it on your server and out of source control.</p>
+<h2>3. Check a piece of text</h2>
+<pre><code>from textsight import TextSight
+
+ts = TextSight()                     # reads TEXTSIGHT_API_KEY
+r = ts.detect(open("essay.txt").read())
+
+print(r["verdict"])                  # "human", "mixed" or "ai"
+print(r["humanization_score"])       # 0-100, higher = more human
+for s in r["sentences"]:
+    if s["label"] == "ai":
+        print(round(s["score"], 2), s["text"])</code></pre>
+<h2>4. Check many files at once</h2>
+<pre><code>from pathlib import Path
+from textsight import TextSight, RateLimitError
+
+ts = TextSight()
+for path in Path("submissions").glob("*.txt"):
+    try:
+        r = ts.score(path.read_text())   # lighter call, no sentence list
+        print(f"{path.name}: {r['humanization_score']}")
+    except RateLimitError:
+        print("Rate limit hit, slow down")</code></pre>
+<p>The client retries rate limits and short outages on its own before raising an error.</p>
+<h2>5. Humanize text that was flagged</h2>
+<pre><code>r = ts.rewrite(text, tone="academic", strength=3, preserve=["Smith (2021)"])
+print(r["rewritten"])</code></pre>
+<p>Tones: conversational, professional, academic, blog and email. Strength runs from 1 (light edit) to 5 (heavy rewrite). Items in <code>preserve</code> stay unchanged. More on this in the <a href="https://www.textsight.ai/ai-humanizer-api/">AI humanizer API</a> guide.</p>
+<h2>Reading the score responsibly</h2>
+<p>No AI detector is right every time. Short texts and writing by non-native English speakers are flagged more often. Treat the score as a signal to look closer, not as proof. TextSight explains why in <a href="https://www.textsight.ai/can-ai-detectors-be-wrong/">Can AI detectors be wrong?</a> and <a href="https://www.textsight.ai/how-ai-detectors-work/">How AI detectors work</a>.</p><h2>FAQ</h2><h3>How do I detect AI-generated text in Python?</h3><p>Install the textsight package with pip install textsight, set your TEXTSIGHT_API_KEY, then call TextSight().detect(text). It returns a verdict, a 0-100 humanization score and per-sentence scores.</p><h3>Can Python detect ChatGPT text offline?</h3><p>Not reliably. Accurate detection needs a trained model, so the textsight package sends text to the TextSight API and returns the result.</p><h3>Is there a free AI detection API for Python?</h3><p>The textsight library is free and open source. The API itself needs a TextSight plan with API access; for occasional checks the browser detector at textsight.ai is free.</p></main><footer>TextSight SDK is MIT licensed and maintained by <a href="https://www.textsight.ai/">TextSight</a>, the AI detector and AI humanizer. Code on <a href="https://github.com/textsight/textsight-sdk">GitHub</a> · <a href="https://pypi.org/project/textsight/">PyPI</a> · <a href="https://www.textsight.ai/api-docs.html">API reference</a> · <a href="https://www.textsight.ai/pricing.html">Pricing</a></footer></body></html>
