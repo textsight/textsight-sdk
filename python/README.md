@@ -50,7 +50,7 @@ print(r["rewritten"])
 ## Command line
 
 ```bash
-export TEXTSIGHT_API_KEY=sk_live_...
+export TEXTSIGHT_API_KEY=sk_live_...        # Windows: set TEXTSIGHT_API_KEY=sk_live_...
 textsight detect essay.txt
 textsight rewrite draft.txt --tone blog
 ```

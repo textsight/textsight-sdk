@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import socket
 import time
 import urllib.error
 import urllib.request
@@ -87,7 +88,7 @@ class TextSight:
         """
         if tone not in TONES:
             raise ValueError(f"tone must be one of {TONES}")
-        if not 1 <= int(strength) <= 5:
+        if isinstance(strength, bool) or not 1 <= int(strength) <= 5:
             raise ValueError("strength must be between 1 and 5")
         body: Dict[str, Any] = {
             "text": _check_text(text),
@@ -95,7 +96,9 @@ class TextSight:
             "strength": int(strength),
         }
         if preserve:
-            body["preserve"] = list(preserve)
+            if isinstance(preserve, str):
+                preserve = [preserve]
+            body["preserve"] = [str(p) for p in preserve]
         return self._post("/rewrite", body)
 
     humanize = rewrite  # alias
@@ -114,12 +117,20 @@ class TextSight:
                     "Authorization": f"Bearer {self.api_key}",
                     "Content-Type": "application/json",
                     "Accept": "application/json",
-                    "User-Agent": "textsight-python/0.1.0",
+                    "User-Agent": "textsight-python/0.1.1",
                 },
             )
             try:
                 with urllib.request.urlopen(req, timeout=self.timeout) as resp:
-                    return json.loads(resp.read().decode("utf-8") or "{}")
+                    raw = resp.read().decode("utf-8")
+                try:
+                    return json.loads(raw or "{}")
+                except ValueError:
+                    raise APIError(
+                        "Unexpected non-JSON response from TextSight API",
+                        status=resp.status,
+                        body=raw[:500],
+                    ) from None
             except urllib.error.HTTPError as e:
                 status = e.code
                 payload = _read_json(e)
@@ -129,12 +140,13 @@ class TextSight:
                     attempt += 1
                     continue
                 raise _error_for(status, payload) from None
-            except urllib.error.URLError as e:
+            except (urllib.error.URLError, socket.timeout, TimeoutError, ConnectionError) as e:
                 if attempt < self.max_retries:
                     time.sleep(_backoff(attempt, None))
                     attempt += 1
                     continue
-                raise TextSightError(f"Network error: {e.reason}") from None
+                reason = getattr(e, "reason", e)
+                raise TextSightError(f"Network error: {reason}") from None
 
 
 def _check_text(text: str) -> str:

@@ -16,6 +16,15 @@ PLAN = {}  # path -> list of (status, body) to return in order
 
 class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
+        if self.path.endswith("/slow"):
+            import time as _t
+            _t.sleep(1.5)
+        if self.path.endswith("/html"):
+            self.rfile.read(int(self.headers["Content-Length"]))
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"<html>oops</html>")
+            return
         body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
         CALLS.append((self.path, dict(self.headers), body))
         queue = PLAN.get(self.path) or [(200, {"ok": True})]
@@ -101,6 +110,25 @@ class ClientTest(unittest.TestCase):
         with self.assertRaises(RateLimitError):
             self.ts.detect("x")
         self.assertEqual(len(CALLS), 3)
+
+    def test_timeout_is_wrapped_and_retried(self):
+        from textsight import TextSightError
+        ts = TextSight("k", base_url=self.base, timeout=0.3, max_retries=1)
+        with self.assertRaises(TextSightError):
+            ts._post("/slow", {"text": "x"})
+
+    def test_non_json_success_raises(self):
+        from textsight import APIError
+        with self.assertRaises(APIError):
+            self.ts._post("/html", {"text": "x"})
+
+    def test_preserve_string_not_split(self):
+        self.ts.rewrite("x", preserve="ACME Inc.")
+        self.assertEqual(CALLS[0][2]["preserve"], ["ACME Inc."])
+
+    def test_bool_strength_rejected(self):
+        with self.assertRaises(ValueError):
+            self.ts.rewrite("x", strength=True)
 
     def test_missing_key(self):
         import os

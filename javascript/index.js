@@ -55,7 +55,8 @@ export class TextSight {
     if (!TONES.includes(tone)) throw new RangeError(`tone must be one of ${TONES.join(", ")}`);
     if (!(strength >= 1 && strength <= 5)) throw new RangeError("strength must be between 1 and 5");
     const body = { text: checkText(text), tone, strength: Math.trunc(strength) };
-    if (preserve && preserve.length) body.preserve = [...preserve];
+    if (typeof preserve === "string") preserve = [preserve];
+    if (preserve && preserve.length) body.preserve = preserve.map(String);
     return this.#post("/rewrite", body);
   }
 
@@ -85,10 +86,23 @@ export class TextSight {
           await sleep(backoff(attempt));
           continue;
         }
-        throw new TextSightError(`Network error: ${e.message}`);
+        const why = e && e.name === "AbortError" ? `timed out after ${this.timeout} ms` : e.message;
+        throw new TextSightError(`Network error: ${why}`);
       }
       clearTimeout(timer);
-      const data = await res.json().catch(() => ({}));
+      const raw = await res.text();
+      let data;
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch {
+        if (res.ok) {
+          throw new TextSightError("Unexpected non-JSON response from TextSight API", {
+            status: res.status,
+            body: raw.slice(0, 500),
+          });
+        }
+        data = {};
+      }
       if (res.ok) return data;
       if (RETRYABLE.has(res.status) && attempt < this.maxRetries) {
         await sleep(backoff(attempt, res.headers.get("retry-after")));

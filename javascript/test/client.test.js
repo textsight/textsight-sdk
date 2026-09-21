@@ -13,6 +13,7 @@ before(async () => {
     req.on("data", (c) => (raw += c));
     req.on("end", () => {
       calls.push({ path: req.url, headers: req.headers, body: JSON.parse(raw) });
+      if (req.url.includes("/html")) return res.writeHead(200).end("<html>oops</html>");
       const q = plan[req.url] || [[200, { ok: true }]];
       const [status, body] = q.length > 1 ? q.shift() : q[0];
       const headers = { "Content-Type": "application/json" };
@@ -75,4 +76,14 @@ test("missing key throws", () => {
   delete process.env.TEXTSIGHT_API_KEY;
   assert.throws(() => new TextSight(), TextSightError);
   if (old) process.env.TEXTSIGHT_API_KEY = old;
+});
+
+test("preserve string is not split into characters", async () => {
+  await client().rewrite("x", { preserve: "ACME Inc." });
+  assert.deepEqual(calls[0].body.preserve, ["ACME Inc."]);
+});
+
+test("non-JSON success body throws", async () => {
+  const ts = new TextSight({ apiKey: "k", baseUrl: base.replace("/v2", "/v2/html"), maxRetries: 0 });
+  await assert.rejects(ts.detect("x"), TextSightError);
 });

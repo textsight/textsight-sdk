@@ -1,19 +1,18 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "textsight"
-version = "0.1.0"
+version = "0.1.1"
 description = "Python client for the TextSight AI detector and AI humanizer API: detect ChatGPT, Claude and Gemini text and humanize AI writing."
 readme = "README.md"
-license = { text = "MIT" }
+license = "MIT"
 authors = [{ name = "TextSight", email = "support@textsight.ai" }]
 requires-python = ">=3.8"
 dependencies = []
 keywords = ["ai detector", "ai content detector", "chatgpt detector", "ai humanizer", "gptzero alternative", "ai text detection", "textsight"]
 classifiers = [
-  "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3",
   "Operating System :: OS Independent",
   "Topic :: Text Processing :: Linguistic",
